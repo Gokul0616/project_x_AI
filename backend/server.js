@@ -128,6 +128,18 @@ app.use('*', (req, res) => {
   });
 });
 
+// Database connection middleware
+app.use('/api', (req, res, next) => {
+  if (mongoose.connection.readyState !== 1 && req.path !== '/health') {
+    return res.status(503).json({
+      error: 'Database connection unavailable',
+      message: 'The database is currently not connected. Please try again later or contact support.',
+      timestamp: new Date().toISOString()
+    });
+  }
+  next();
+});
+
 // Global error handler
 app.use((error, req, res, next) => {
   console.error('Global error handler:', error);
@@ -149,6 +161,13 @@ app.use((error, req, res, next) => {
     return res.status(400).json({
       error: 'Duplicate field value',
       field: Object.keys(error.keyValue)[0]
+    });
+  }
+  
+  if (error.name === 'MongooseServerSelectionError' || error.name === 'MongoNetworkError') {
+    return res.status(503).json({
+      error: 'Database connection error',
+      message: 'Unable to connect to the database. Please try again later.'
     });
   }
   
