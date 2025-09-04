@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:project_x/core/theme/color_palette.dart';
 import 'package:project_x/core/utils/responsive_utils.dart';
 import 'package:project_x/core/providers/theme_provider.dart';
+import 'package:project_x/core/services/app_navigation_service.dart';
 import 'package:project_x/shared/widgets/animated_counter.dart';
 
 class TweetCard extends StatefulWidget {
