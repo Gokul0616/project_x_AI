@@ -148,6 +148,13 @@ class XApp extends StatelessWidget {
                     builder: (_) => const ForgotPasswordScreen(),
                   );
                 default:
+                  // Handle dynamic routes like tweet detail
+                  if (settings.name?.startsWith('/tweet-detail/') == true) {
+                    final tweetId = settings.name?.substring('/tweet-detail/'.length);
+                    return MaterialPageRoute(
+                      builder: (_) => TweetDetailScreen(tweetId: tweetId ?? ''),
+                    );
+                  }
                   return MaterialPageRoute(builder: (_) => const NotFoundScreen());
               }
             },
