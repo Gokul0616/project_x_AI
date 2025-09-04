@@ -65,9 +65,7 @@ class DesktopHomeLayout extends StatelessWidget {
                   ),
 
                   const Divider(height: 1, color: Colors.grey),
-                  Expanded(
-                    child: _buildCurrentScreen(),
-                  ),
+                  Expanded(child: _buildCurrentScreen()),
                 ],
               ),
             ),
@@ -141,7 +139,8 @@ class DesktopHomeLayout extends StatelessWidget {
             likes: 24,
             retweets: 5,
             replies: 3,
-            imageUrl: "https://via.placeholder.com/500x300",
+            imageUrl:
+                'https://media.istockphoto.com/id/1280385511/photo/colorful-background.jpg?s=612x612&w=0&k=20&c=kj0PRQlgvWLzA1-1me6iZp5mlwsZhC4QlcvIEb1J1bs=',
           ),
           TweetCard(
             username: "Jane Smith",
@@ -161,6 +160,18 @@ class DesktopHomeLayout extends StatelessWidget {
             likes: 128,
             retweets: 45,
             replies: 23,
+          ),
+          TweetCard(
+            username: "Tech Jobs",
+            handle: "technews",
+            content:
+                "New Flutter update brings exciting features for developers",
+            time: "6h",
+            likes: 128,
+            retweets: 45,
+            replies: 23,
+            imageUrl:
+                'https://images.pexels.com/photos/214574/pexels-photo-214574.jpeg?cs=srgb&dl=pexels-sebastian-214574.jpg&fm=jpg',
           ),
         ],
       ),
