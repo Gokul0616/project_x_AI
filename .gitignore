@@ -1,0 +1,67 @@
+backend/node_modules
+# Flutter/Dart/Pub related
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.melos_tool/
+pubspec.lock
+generated_plugin_registrant.dart
+
+# Build outputs
+build/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/.symlinks/
+ios/Pods/
+ios/Runner.xcworkspace/
+macos/Flutter/Flutter.framework
+macos/Flutter/Flutter.podspec
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/.symlinks/
+macos/Pods/
+linux/flutter/ephemeral/
+windows/flutter/ephemeral/
+web/generated_plugin_registrant.dart
+
+# Android
+*.iml
+.android/
+gradle-wrapper.jar
+*.log
+**/gradle.properties
+**/local.properties
+**/GeneratedPluginRegistrant.java
+
+# Xcode
+DerivedData/
+*.xcworkspace
+*.xcuserstate
+*.xcuserdata
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/xcshareddata/WorkspaceSettings.xcsettings
+*.pbxuser
+
+# VS Code
+.vscode/
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+*.sw?
+
+# Misc
+*.lock
+*.DS_Store
+*.log
+*.tmp
+*.bak
+*.orig
+
+# Web
+build/web/
