@@ -51,14 +51,14 @@ app.use('/uploads', express.static('uploads'));
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI)
-.then(() => {
-  console.log('✅ Connected to MongoDB Atlas');
-})
-.catch((error) => {
-  console.error('❌ MongoDB connection error:', error.message);
-  console.log('⚠️  Server will continue without database connection');
-  console.log('💡 The API endpoints will return appropriate error messages when database operations are attempted');
-});
+  .then(() => {
+    console.log('✅ Connected to MongoDB Atlas');
+  })
+  .catch((error) => {
+    console.error('❌ MongoDB connection error:', error.message);
+    console.log('⚠️  Server will continue without database connection');
+    console.log('💡 The API endpoints will return appropriate error messages when database operations are attempted');
+  });
 
 // Handle mongoose connection events
 mongoose.connection.on('connected', () => {
@@ -90,8 +90,8 @@ app.get('/api/health', (req, res) => {
     3: 'disconnecting'
   }[mongoStatus] || 'unknown';
 
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     version: '1.0.0',
@@ -104,7 +104,7 @@ app.get('/api/health', (req, res) => {
 
 // Default route
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'Project X API is running!',
     version: '1.0.0',
     endpoints: [
@@ -122,7 +122,7 @@ app.get('/', (req, res) => {
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({ 
+  res.status(404).json({
     error: 'Route not found',
     message: `Cannot ${req.method} ${req.originalUrl}`
   });
@@ -143,34 +143,34 @@ app.use('/api', (req, res, next) => {
 // Global error handler
 app.use((error, req, res, next) => {
   console.error('Global error handler:', error);
-  
+
   if (error.name === 'ValidationError') {
     return res.status(400).json({
       error: 'Validation Error',
       details: Object.values(error.errors).map(err => err.message)
     });
   }
-  
+
   if (error.name === 'CastError') {
     return res.status(400).json({
       error: 'Invalid ID format'
     });
   }
-  
+
   if (error.code === 11000) {
     return res.status(400).json({
       error: 'Duplicate field value',
       field: Object.keys(error.keyValue)[0]
     });
   }
-  
+
   if (error.name === 'MongooseServerSelectionError' || error.name === 'MongoNetworkError') {
     return res.status(503).json({
       error: 'Database connection error',
       message: 'Unable to connect to the database. Please try again later.'
     });
   }
-  
+
   res.status(error.status || 500).json({
     error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
     ...(process.env.NODE_ENV === 'development' && { stack: error.stack })

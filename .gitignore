@@ -74,3 +74,4 @@ appcenter/
 # Environment files
 *.env
 *.env.*
+backend/node_modules
