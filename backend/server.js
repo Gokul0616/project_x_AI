@@ -56,7 +56,21 @@ mongoose.connect(process.env.MONGODB_URI)
 })
 .catch((error) => {
   console.error('❌ MongoDB connection error:', error.message);
-  console.log('⚠️  Server will continue without database (API will show connection status)');
+  console.log('⚠️  Server will continue without database connection');
+  console.log('💡 The API endpoints will return appropriate error messages when database operations are attempted');
+});
+
+// Handle mongoose connection events
+mongoose.connection.on('connected', () => {
+  console.log('✅ Mongoose connected to MongoDB');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('❌ Mongoose connection error:', err.message);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('⚠️  Mongoose disconnected from MongoDB');
 });
 
 // Routes
