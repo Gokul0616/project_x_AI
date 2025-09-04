@@ -50,16 +50,13 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/uploads', express.static('uploads'));
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(process.env.MONGODB_URI)
 .then(() => {
-  console.log('✅ Connected to MongoDB');
+  console.log('✅ Connected to MongoDB Atlas');
 })
 .catch((error) => {
-  console.error('❌ MongoDB connection error:', error);
-  process.exit(1);
+  console.error('❌ MongoDB connection error:', error.message);
+  console.log('⚠️  Server will continue without database (API will show connection status)');
 });
 
 // Routes
