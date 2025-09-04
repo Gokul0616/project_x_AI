@@ -7,12 +7,28 @@ class AppNavigationService {
   static final GlobalKey<NavigatorState> navigatorKey = NavigationService.navigatorKey;
 
   // Navigate to full screen (separate routes)
+  static Future<void> navigateToHome() {
+    return NavigationService.navigateTo(RouteConstants.home);
+  }
+  
+  static Future<void> navigateToSearch() {
+    return NavigationService.navigateTo(RouteConstants.search);
+  }
+  
+  static Future<void> navigateToNotifications() {
+    return NavigationService.navigateTo(RouteConstants.notifications);
+  }
+  
+  static Future<void> navigateToMessages() {
+    return NavigationService.navigateTo(RouteConstants.messages);
+  }
+
   static Future<void> navigateToProfile({String? userId}) {
     return NavigationService.navigateTo(RouteConstants.profile, arguments: userId);
   }
 
   static Future<void> navigateToTweetDetail(String tweetId) {
-    return NavigationService.navigateTo('/tweet/$tweetId');
+    return NavigationService.navigateTo('/tweet-detail/$tweetId');
   }
 
   static Future<void> navigateToChat(String conversationId) {
