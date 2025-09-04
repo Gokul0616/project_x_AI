@@ -26,7 +26,7 @@ class AppColors {
   static Color surfaceColor(bool isDark) => isDark ? Color(0xFF15181C) : lightSurface;
   static Color cardColor(bool isDark) => isDark ? Color(0xFF202327) : lightCard;
   static Color textPrimary(bool isDark) => isDark ? white : lightText;
-  static Color textSecondary(bool isDark) => isDark ? midGray : lightTextSecondary;
+  static Color textSecondary(bool isDark) => isDark ? Color(0xFF71767B) : lightTextSecondary; // Better contrast for dark mode
   static Color borderColor(bool isDark) => isDark ? Color(0xFF2F3336) : lightBorder;
   
   // Feedback colors
