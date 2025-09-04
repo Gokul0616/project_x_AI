@@ -130,10 +130,10 @@ class _ProfileContentState extends State<ProfileContent>
                                 borderRadius: BorderRadius.circular(20),
                               ),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Edit profile',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
