@@ -111,8 +111,8 @@ class _TweetCardState extends State<TweetCard>
         
         return InkWell(
           onTap: () {
-            // TODO: Navigate to tweet detail
-            print('Tapped tweet');
+            // Navigate to tweet detail with a mock tweet ID
+            AppNavigationService.navigateToTweetDetail('${widget.handle}_${widget.time}');
           },
           child: Container(
             padding: EdgeInsets.all(ResponsiveUtils.isMobile(context) ? 16 : 20),
