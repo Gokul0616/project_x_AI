@@ -243,8 +243,8 @@ class _ProfileContentState extends State<ProfileContent>
                           const SizedBox(width: 16),
                           Text(
                             '${_user.followerCount}',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
