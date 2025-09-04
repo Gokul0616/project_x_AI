@@ -16,6 +16,7 @@ import 'package:project_x/features/search/search_screen.dart';
 import 'package:project_x/features/notifications/notifications_screen.dart';
 import 'package:project_x/features/messages/messages_screen.dart';
 import 'package:project_x/features/profile/profile_screen.dart';
+import 'package:project_x/features/tweets/tweet_detail_screen.dart';
 import 'package:project_x/shared/services/navigation_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
