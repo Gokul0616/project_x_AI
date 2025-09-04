@@ -70,3 +70,7 @@ web/.dart_tool/
 # Symbolication and crash reports
 crashlytics/
 appcenter/
+-e 
+# Environment files
+*.env
+*.env.*
