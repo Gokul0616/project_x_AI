@@ -176,8 +176,8 @@ class _ProfileContentState extends State<ProfileContent>
                         const SizedBox(height: 12),
                         Text(
                           _user.bio!,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 15,
                             height: 1.4,
                           ),
