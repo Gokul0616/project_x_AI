@@ -80,10 +80,25 @@ class SideNavigationBar extends StatelessWidget {
         ),
       ),
       onTap: () {
-        if (index == 4) { // Profile
-          AppNavigationService.navigateToProfile();
-        } else {
-          onItemSelected(index);
+        // Navigate to separate routes for desktop/tablet
+        switch (index) {
+          case 0: // Home
+            AppNavigationService.navigateToHome();
+            break;
+          case 1: // Search
+            AppNavigationService.navigateToSearch();
+            break;
+          case 2: // Notifications
+            AppNavigationService.navigateToNotifications();
+            break;
+          case 3: // Messages
+            AppNavigationService.navigateToMessages();
+            break;
+          case 4: // Profile
+            AppNavigationService.navigateToProfile();  
+            break;
+          default:
+            AppNavigationService.navigateToHome();
         }
       },
     );
