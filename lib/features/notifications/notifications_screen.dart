@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:project_x/core/theme/color_palette.dart';
 import 'package:project_x/core/theme/text_styles.dart';
-import 'package:project_x/core/utils/responsive_utils.dart';
-import 'package:project_x/core/providers/theme_provider.dart';
-import 'package:project_x/features/notifications/widgets/notification_item.dart';
-import 'package:project_x/core/models/notification_model.dart';
-import 'package:project_x/core/models/user_model.dart';
-import 'package:project_x/core/models/tweet_model.dart';
+import 'package:project_x/core/theme/theme_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -16,26 +12,22 @@ class NotificationsScreen extends StatefulWidget {
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  int _selectedTab = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
-      setState(() {
-        _selectedTab = _tabController.index;
-      });
-    });
-  }
+class _NotificationsScreenState extends State<NotificationsScreen> {
+  final RefreshController _refreshController = RefreshController();
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _refreshController.dispose();
     super.dispose();
+  }
+
+  void _onRefresh() {
+    // Simulate refreshing notifications
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        _refreshController.refreshCompleted();
+      }
+    });
   }
 
   @override
@@ -46,318 +38,136 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         
         return Scaffold(
           backgroundColor: AppColors.backgroundColor(isDark),
-          body: Column(
-            children: [
-              _buildTabBar(isDark),
-              Expanded(
-                child: ResponsiveUtils.isLargeScreen(context)
-                    ? _buildLargeScreenLayout(isDark)
-                    : _buildMobileLayout(isDark),
+          body: SmartRefresher(
+            controller: _refreshController,
+            onRefresh: _onRefresh,
+            header: WaterDropHeader(
+              waterDropColor: AppColors.blue,
+              complete: Icon(
+                Icons.check,
+                color: AppColors.blue,
               ),
-            ],
+            ),
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _buildNotificationItem(
+                  Icons.favorite,
+                  AppColors.error,
+                  'Jane Smith liked your tweet',
+                  '"Just shipped a new Flutter feature! The hot reload..."',
+                  '2h',
+                  isDark,
+                ),
+                _buildNotificationItem(
+                  Icons.repeat,
+                  AppColors.success,
+                  'Tech News retweeted your tweet',
+                  '"Mars needs memes 🚀 Working on Starship orbital..."',
+                  '4h',
+                  isDark,
+                ),
+                _buildNotificationItem(
+                  Icons.person_add,
+                  AppColors.blue,
+                  'Sarah Wilson started following you',
+                  '',
+                  '6h',
+                  isDark,
+                ),
+                _buildNotificationItem(
+                  Icons.chat_bubble,
+                  AppColors.blue,
+                  'Elon Musk replied to your tweet',
+                  '"Probably 2029 if all goes well! 🚀"',
+                  '8h',
+                  isDark,
+                ),
+                _buildNotificationItem(
+                  Icons.favorite,
+                  AppColors.error,
+                  '25 people liked your tweet',
+                  '"Beautiful sunset from my office today 🌅"',
+                  '1d',
+                  isDark,
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildTabBar(bool isDark) {
+  Widget _buildNotificationItem(
+    IconData icon,
+    Color iconColor,
+    String title,
+    String content,
+    String time,
+    bool isDark,
+  ) {
     return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.borderColor(isDark), width: 0.5),
-        ),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        indicatorColor: AppColors.blue,
-        indicatorWeight: 2,
-        labelColor: AppColors.blue,
-        unselectedLabelColor: AppColors.textSecondary(isDark),
-        labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-        ),
-        tabs: const [
-          Tab(text: 'All'),
-          Tab(text: 'Mentions'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLargeScreenLayout(bool isDark) {
-    return Row(
-      children: [
-        Expanded(flex: 2, child: _buildMainContent(isDark)),
-        if (ResponsiveUtils.isDesktop(context))
-          Expanded(flex: 1, child: _buildRightSidebar(isDark)),
-      ],
-    );
-  }
-
-  Widget _buildMobileLayout(bool isDark) {
-    return _buildMainContent(isDark);
-  }
-
-  Widget _buildMainContent(bool isDark) {
-    return TabBarView(
-      controller: _tabController,
-      children: [_buildAllNotifications(isDark), _buildMentionsNotifications(isDark)],
-    );
-  }
-
-  Widget _buildAllNotifications(bool isDark) {
-    final notifications = _getMockNotifications();
-
-    if (notifications.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: () async {
-          await Future.delayed(const Duration(seconds: 1));
-        },
-        color: AppColors.blue,
-        backgroundColor: AppColors.cardColor(isDark),
-        child: _buildEmptyState(
-          icon: Icons.notifications_none,
-          title: 'No notifications yet',
-          subtitle:
-              'When someone likes, retweets, or follows you, you\'ll see it here.',
-          isDark: isDark,
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: () async {
-        await Future.delayed(const Duration(seconds: 1));
-      },
-      color: AppColors.blue,
-      backgroundColor: AppColors.cardColor(isDark),
-      child: ListView.builder(
-        physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: notifications.length,
-        itemBuilder: (context, index) {
-          return NotificationItem(
-            notification: notifications[index],
-            onTap: () => _handleNotificationTap(notifications[index]),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildMentionsNotifications(bool isDark) {
-    final mentionNotifications = _getMockNotifications()
-        .where((n) => n.type == NotificationType.mention)
-        .toList();
-
-    if (mentionNotifications.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: () async {
-          await Future.delayed(const Duration(seconds: 1));
-        },
-        color: AppColors.blue,
-        backgroundColor: AppColors.cardColor(isDark),
-        child: _buildEmptyState(
-          icon: Icons.alternate_email,
-          title: 'No mentions yet',
-          subtitle:
-              'When someone mentions you in a tweet, you\'ll see it here.',
-          isDark: isDark,
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: () async {
-        await Future.delayed(const Duration(seconds: 1));
-      },
-      color: AppColors.blue,
-      backgroundColor: AppColors.cardColor(isDark),
-      child: ListView.builder(
-        physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: mentionNotifications.length,
-        itemBuilder: (context, index) {
-          return NotificationItem(
-            notification: mentionNotifications[index],
-            onTap: () => _handleNotificationTap(mentionNotifications[index]),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildEmptyState({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool isDark,
-  }) {
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      children: [
-        SizedBox(
-          height: MediaQuery.of(context).size.height * 0.6,
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 64, color: AppColors.textSecondary(isDark)),
-                  const SizedBox(height: 24),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: AppColors.textPrimary(isDark),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: AppColors.textSecondary(isDark), 
-                      fontSize: 15
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRightSidebar(bool isDark) {
-    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
-      child: Column(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceColor(isDark),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.borderColor(isDark), 
+          width: 0.5,
+        ),
+      ),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Notification settings', style: TextStyles.titleMedium),
-          const SizedBox(height: 16),
-          _buildSettingItem('Push notifications', true, isDark),
-          _buildSettingItem('Email notifications', false, isDark),
-          _buildSettingItem('SMS notifications', false, isDark),
-          const SizedBox(height: 24),
-          Text('Filter notifications', style: TextStyles.titleMedium),
-          const SizedBox(height: 16),
-          _buildSettingItem('Quality filter', true, isDark),
-          _buildSettingItem('Advanced filters', false, isDark),
-          _buildSettingItem('Muted notifications', false, isDark),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingItem(String title, bool isEnabled, bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: TextStyles.bodyMedium),
-          Switch(
-            value: isEnabled,
-            onChanged: (value) {},
-            activeThumbColor: AppColors.blue,
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyles.bodyMedium.copyWith(
+                    color: AppColors.textPrimary(isDark),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (content.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    content,
+                    style: TextStyles.bodySmall.copyWith(
+                      color: AppColors.textSecondary(isDark),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                const SizedBox(height: 4),
+                Text(
+                  time,
+                  style: TextStyles.caption.copyWith(
+                    color: AppColors.textSecondary(isDark),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
-  }
-
-  void _handleNotificationTap(NotificationModel notification) {
-    // Handle notification tap - navigate to relevant screen
-    print('Tapped notification: ${notification.message}');
-  }
-
-  List<NotificationModel> _getMockNotifications() {
-    final now = DateTime.now();
-    final mockUser = UserModel(
-      id: '1',
-      username: 'johndoe',
-      displayName: 'John Doe',
-      email: 'john@example.com',
-      joinedDate: DateTime.now().subtract(const Duration(days: 365)),
-      followers: 150,
-      following: 200,
-    );
-
-    final mockTweet = TweetModel(
-      id: '1',
-      content: 'Just built an amazing Flutter app!',
-      author: mockUser,
-      createdAt: now.subtract(const Duration(hours: 2)),
-      likes: 25,
-      retweets: 5,
-      replies: 3,
-    );
-
-    return [
-      NotificationModel(
-        id: '1',
-        type: NotificationType.like,
-        fromUser: mockUser,
-        toUser: mockUser,
-        tweet: mockTweet,
-        createdAt: now.subtract(const Duration(minutes: 30)),
-      ),
-      NotificationModel(
-        id: '2',
-        type: NotificationType.follow,
-        fromUser: mockUser.copyWith(
-          id: '2',
-          username: 'janesmith',
-          displayName: 'Jane Smith',
-        ),
-        toUser: mockUser,
-        createdAt: now.subtract(const Duration(hours: 1)),
-      ),
-      NotificationModel(
-        id: '3',
-        type: NotificationType.retweet,
-        fromUser: mockUser.copyWith(
-          id: '3',
-          username: 'techuser',
-          displayName: 'Tech User',
-        ),
-        toUser: mockUser,
-        tweet: mockTweet,
-        createdAt: now.subtract(const Duration(hours: 3)),
-      ),
-      NotificationModel(
-        id: '4',
-        type: NotificationType.mention,
-        fromUser: mockUser.copyWith(
-          id: '4',
-          username: 'mention_user',
-          displayName: 'Mention User',
-        ),
-        toUser: mockUser,
-        tweet: mockTweet.copyWith(
-          content: '@johndoe check out this amazing feature!',
-        ),
-        createdAt: now.subtract(const Duration(hours: 5)),
-      ),
-      NotificationModel(
-        id: '5',
-        type: NotificationType.reply,
-        fromUser: mockUser.copyWith(
-          id: '5',
-          username: 'reply_user',
-          displayName: 'Reply User',
-        ),
-        toUser: mockUser,
-        tweet: mockTweet,
-        createdAt: now.subtract(const Duration(hours: 8)),
-      ),
-    ];
   }
 }

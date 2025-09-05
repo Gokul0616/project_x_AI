@@ -1,123 +1,115 @@
-import 'package:project_x/core/models/user_model.dart';
-
-class TweetModel {
+class Tweet {
   final String id;
+  final String userId;
+  final String username;
+  final String handle;
+  final String avatarUrl;
   final String content;
-  final UserModel author;
   final DateTime createdAt;
-  final List<String> mediaUrls;
-  final int likes;
-  final int retweets;
-  final int replies;
+  final List<String> imageUrls;
+  final int likesCount;
+  final int retweetsCount;
+  final int repliesCount;
   final bool isLiked;
   final bool isRetweeted;
-  final String? quotedTweetId;
-  final TweetModel? quotedTweet;
-  final String? replyToTweetId;
-  final TweetModel? replyToTweet;
-  final List<String> mentions;
-  final List<String> hashtags;
+  final bool isBookmarked;
+  final bool isFollowing;
+  final String? parentTweetId; // For nested replies
+  final List<Tweet> replies; // Nested replies
+  final bool isRetweet;
+  final Tweet? retweetedTweet; // Original tweet if this is a retweet
+  final String? retweetedBy; // User who retweeted
+  final Tweet? quotedTweet; // For quote tweets
+  final bool isQuoteTweet;
+  final int quoteTweetCount;
+  final List<String> videoUrls; // For video content
+  final String? pollId; // For polls
+  final String? locationName; // For location data
 
-  const TweetModel({
+  const Tweet({
     required this.id,
+    required this.userId,
+    required this.username,
+    required this.handle,
+    required this.avatarUrl,
     required this.content,
-    required this.author,
     required this.createdAt,
-    this.mediaUrls = const [],
-    this.likes = 0,
-    this.retweets = 0,
-    this.replies = 0,
+    this.imageUrls = const [],
+    this.likesCount = 0,
+    this.retweetsCount = 0,
+    this.repliesCount = 0,
     this.isLiked = false,
     this.isRetweeted = false,
-    this.quotedTweetId,
+    this.isBookmarked = false,
+    this.isFollowing = false,
+    this.parentTweetId,
+    this.replies = const [],
+    this.isRetweet = false,
+    this.retweetedTweet,
+    this.retweetedBy,
     this.quotedTweet,
-    this.replyToTweetId,
-    this.replyToTweet,
-    this.mentions = const [],
-    this.hashtags = const [],
+    this.isQuoteTweet = false,
+    this.quoteTweetCount = 0,
+    this.videoUrls = const [],
+    this.pollId,
+    this.locationName,
   });
 
-  factory TweetModel.fromJson(Map<String, dynamic> json) {
-    return TweetModel(
-      id: json['id'],
-      content: json['content'],
-      author: UserModel.fromJson(json['author']),
-      createdAt: DateTime.parse(json['createdAt']),
-      mediaUrls: List<String>.from(json['mediaUrls'] ?? []),
-      likes: json['likes'] ?? 0,
-      retweets: json['retweets'] ?? 0,
-      replies: json['replies'] ?? 0,
-      isLiked: json['isLiked'] ?? false,
-      isRetweeted: json['isRetweeted'] ?? false,
-      quotedTweetId: json['quotedTweetId'],
-      quotedTweet: json['quotedTweet'] != null
-          ? TweetModel.fromJson(json['quotedTweet'])
-          : null,
-      replyToTweetId: json['replyToTweetId'],
-      replyToTweet: json['replyToTweet'] != null
-          ? TweetModel.fromJson(json['replyToTweet'])
-          : null,
-      mentions: List<String>.from(json['mentions'] ?? []),
-      hashtags: List<String>.from(json['hashtags'] ?? []),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'content': content,
-      'author': author.toJson(),
-      'createdAt': createdAt.toIso8601String(),
-      'mediaUrls': mediaUrls,
-      'likes': likes,
-      'retweets': retweets,
-      'replies': replies,
-      'isLiked': isLiked,
-      'isRetweeted': isRetweeted,
-      'quotedTweetId': quotedTweetId,
-      'quotedTweet': quotedTweet?.toJson(),
-      'replyToTweetId': replyToTweetId,
-      'replyToTweet': replyToTweet?.toJson(),
-      'mentions': mentions,
-      'hashtags': hashtags,
-    };
-  }
-
-  TweetModel copyWith({
+  Tweet copyWith({
     String? id,
+    String? userId,
+    String? username,
+    String? handle,
+    String? avatarUrl,
     String? content,
-    UserModel? author,
     DateTime? createdAt,
-    List<String>? mediaUrls,
-    int? likes,
-    int? retweets,
-    int? replies,
+    List<String>? imageUrls,
+    int? likesCount,
+    int? retweetsCount,
+    int? repliesCount,
     bool? isLiked,
     bool? isRetweeted,
-    String? quotedTweetId,
-    TweetModel? quotedTweet,
-    String? replyToTweetId,
-    TweetModel? replyToTweet,
-    List<String>? mentions,
-    List<String>? hashtags,
+    bool? isBookmarked,
+    bool? isFollowing,
+    String? parentTweetId,
+    List<Tweet>? replies,
+    bool? isRetweet,
+    Tweet? retweetedTweet,
+    String? retweetedBy,
+    Tweet? quotedTweet,
+    bool? isQuoteTweet,
+    int? quoteTweetCount,
+    List<String>? videoUrls,
+    String? pollId,
+    String? locationName,
   }) {
-    return TweetModel(
+    return Tweet(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
+      username: username ?? this.username,
+      handle: handle ?? this.handle,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
       content: content ?? this.content,
-      author: author ?? this.author,
       createdAt: createdAt ?? this.createdAt,
-      mediaUrls: mediaUrls ?? this.mediaUrls,
-      likes: likes ?? this.likes,
-      retweets: retweets ?? this.retweets,
-      replies: replies ?? this.replies,
+      imageUrls: imageUrls ?? this.imageUrls,
+      likesCount: likesCount ?? this.likesCount,
+      retweetsCount: retweetsCount ?? this.retweetsCount,
+      repliesCount: repliesCount ?? this.repliesCount,
       isLiked: isLiked ?? this.isLiked,
       isRetweeted: isRetweeted ?? this.isRetweeted,
-      quotedTweetId: quotedTweetId ?? this.quotedTweetId,
+      isBookmarked: isBookmarked ?? this.isBookmarked,
+      isFollowing: isFollowing ?? this.isFollowing,
+      parentTweetId: parentTweetId ?? this.parentTweetId,
+      replies: replies ?? this.replies,
+      isRetweet: isRetweet ?? this.isRetweet,
+      retweetedTweet: retweetedTweet ?? this.retweetedTweet,
+      retweetedBy: retweetedBy ?? this.retweetedBy,
       quotedTweet: quotedTweet ?? this.quotedTweet,
-      replyToTweetId: replyToTweetId ?? this.replyToTweetId,
-      replyToTweet: replyToTweet ?? this.replyToTweet,
-      mentions: mentions ?? this.mentions,
-      hashtags: hashtags ?? this.hashtags,
+      isQuoteTweet: isQuoteTweet ?? this.isQuoteTweet,
+      quoteTweetCount: quoteTweetCount ?? this.quoteTweetCount,
+      videoUrls: videoUrls ?? this.videoUrls,
+      pollId: pollId ?? this.pollId,
+      locationName: locationName ?? this.locationName,
     );
   }
 
@@ -125,7 +117,9 @@ class TweetModel {
     final now = DateTime.now();
     final difference = now.difference(createdAt);
 
-    if (difference.inDays > 0) {
+    if (difference.inDays > 7) {
+      return '${createdAt.day}/${createdAt.month}/${createdAt.year}';
+    } else if (difference.inDays > 0) {
       return '${difference.inDays}d';
     } else if (difference.inHours > 0) {
       return '${difference.inHours}h';
@@ -134,5 +128,15 @@ class TweetModel {
     } else {
       return 'now';
     }
+  }
+
+  bool get hasMedia => imageUrls.isNotEmpty || videoUrls.isNotEmpty;
+  
+  bool get isThread => replies.isNotEmpty;
+  
+  String get mediaType {
+    if (videoUrls.isNotEmpty) return 'video';
+    if (imageUrls.isNotEmpty) return 'image';
+    return 'text';
   }
 }

@@ -116,7 +116,7 @@ class _AuthFormState extends State<AuthForm> {
               }
               return null;
             },
-            onSubmitted: (_) {
+            onFieldSubmitted: (_) {
               if (widget.isLogin) {
                 _focusPassword.requestFocus();
               } else {
@@ -143,7 +143,7 @@ class _AuthFormState extends State<AuthForm> {
                 }
                 return null;
               },
-              onSubmitted: (_) {
+              onFieldSubmitted: (_) {
                 _focusPassword.requestFocus();
               },
             ),
@@ -173,7 +173,7 @@ class _AuthFormState extends State<AuthForm> {
               }
               return null;
             },
-            onSubmitted: (_) {
+            onFieldSubmitted: (_) {
               _submitForm();
             },
           ),

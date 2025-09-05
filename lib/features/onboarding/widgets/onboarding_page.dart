@@ -7,14 +7,14 @@ class OnboardingPage extends StatelessWidget {
   final String imagePath;
   final String title;
   final String description;
-
+  
   const OnboardingPage({
     super.key,
     required this.imagePath,
     required this.title,
     required this.description,
   });
-
+  
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -22,26 +22,26 @@ class OnboardingPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Image with border radius and responsive sizing
+          // Image with responsive sizing
           Expanded(
             flex: ResponsiveUtils.isDesktop(context) ? 2 : 1,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(5),
-              child: Image.asset(imagePath, fit: BoxFit.contain),
+            child: Image.asset(
+              imagePath,
+              fit: BoxFit.contain,
             ),
           ),
-
+          
           const SizedBox(height: AppConstants.paddingXL),
-
+          
           // Text content
           Text(
             title,
             style: TextStyles.displayLarge,
             textAlign: TextAlign.center,
           ),
-
+          
           const SizedBox(height: AppConstants.paddingM),
-
+          
           Text(
             description,
             style: TextStyles.bodyLarge,

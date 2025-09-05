@@ -1,14 +1,15 @@
 // lib/features/home/widgets/mobile_home_layout.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:project_x/features/home/widgets/tweet_card.dart';
-import 'package:project_x/features/home/widgets/tweet_composer.dart';
-import 'package:project_x/features/home/widgets/app_drawer.dart';
+import 'package:project_x/features/home/widgets/enhanced_tweet_card.dart';
+import 'package:project_x/features/home/widgets/enhanced_tweet_composer.dart';
+import 'package:project_x/features/home/viewmodels/tweet_viewmodel.dart';
+import 'package:project_x/core/theme/color_palette.dart';
+import 'package:project_x/core/theme/theme_provider.dart';
 import 'package:project_x/features/search/search_screen.dart';
 import 'package:project_x/features/notifications/notifications_screen.dart';
 import 'package:project_x/features/messages/messages_screen.dart';
-import 'package:project_x/core/theme/color_palette.dart';
-import 'package:project_x/core/providers/theme_provider.dart';
+import 'package:project_x/features/home/widgets/app_drawer.dart';
 
 class MobileHomeLayout extends StatelessWidget {
   final int currentIndex;
@@ -30,60 +31,84 @@ class MobileHomeLayout extends StatelessWidget {
           backgroundColor: AppColors.backgroundColor(isDark),
           drawer: const AppDrawer(),
           appBar: AppBar(
-            backgroundColor: AppColors.backgroundColor(isDark),
-            elevation: 0,
-            leading: Builder(
-              builder: (context) => GestureDetector(
-                onTap: () => Scaffold.of(context).openDrawer(),
-                child: Container(
-                  margin: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(shape: BoxShape.circle),
-                  child: const CircleAvatar(
-                    radius: 16,
-                    backgroundImage: NetworkImage(
-                      'https://via.placeholder.com/32',
-                    ),
-                  ),
-                ),
-              ),
-            ),
             title: Text(
               _getAppBarTitle(),
               style: TextStyle(
                 color: AppColors.textPrimary(isDark),
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.bold,
               ),
             ),
+            backgroundColor: AppColors.backgroundColor(isDark),
+            elevation: 0,
             centerTitle: false,
-          ),
-          body: _buildCurrentScreen(isDark),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => TweetComposer(
-                  onTweet: (text) {
-                    print("Tweeted: $text");
-                  },
+            iconTheme: IconThemeData(color: AppColors.textPrimary(isDark)),
+            actions: [
+              IconButton(
+                icon: Icon(
+                  Icons.autorenew,
+                  color: AppColors.textSecondary(isDark),
                 ),
-              );
-            },
-            backgroundColor: AppColors.blue,
-            child: const Icon(Icons.add, color: Colors.white),
+                onPressed: () {
+                  if (currentIndex == 0) {
+                    // Refresh home feed
+                    context.read<TweetViewModel>().refreshTweets();
+                  }
+                },
+              ),
+            ],
           ),
+          body: IndexedStack(
+            index: currentIndex,
+            children: [
+              _buildHomeFeed(isDark),
+              _buildExploreScreen(),
+              _buildNotificationsScreen(),
+              _buildMessagesScreen(),
+            ],
+          ),
+          floatingActionButton: currentIndex == 0
+              ? FloatingActionButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => EnhancedTweetComposer(
+                        onTweet:
+                            (content, {List<String>? mediaUrls, quoteTweet}) {
+                              final tweetViewModel = context
+                                  .read<TweetViewModel>();
+
+                              if (quoteTweet != null) {
+                                tweetViewModel.addQuoteTweet(
+                                  content,
+                                  quoteTweet,
+                                  mediaUrls: mediaUrls ?? [],
+                                );
+                              } else {
+                                tweetViewModel.addTweet(
+                                  content,
+                                  mediaUrls: mediaUrls ?? [],
+                                );
+                              }
+                            },
+                      ),
+                    );
+                  },
+                  backgroundColor: AppColors.blue,
+                  child: const Icon(Icons.add, color: AppColors.white),
+                )
+              : null,
           bottomNavigationBar: BottomNavigationBar(
+            backgroundColor: AppColors.backgroundColor(isDark),
             currentIndex: currentIndex,
             onTap: onItemTapped,
             type: BottomNavigationBarType.fixed,
-            backgroundColor: AppColors.backgroundColor(isDark),
-            selectedItemColor: AppColors.textPrimary(isDark),
+            selectedItemColor: AppColors.blue,
             unselectedItemColor: AppColors.textSecondary(isDark),
-            selectedFontSize: 11,
-            unselectedFontSize: 11,
-            iconSize: 24,
+            showSelectedLabels: false,
+            showUnselectedLabels: false,
+            elevation: 0,
             items: const [
               BottomNavigationBarItem(
                 icon: Icon(Icons.home_outlined),
@@ -93,7 +118,7 @@ class MobileHomeLayout extends StatelessWidget {
               BottomNavigationBarItem(
                 icon: Icon(Icons.search_outlined),
                 activeIcon: Icon(Icons.search),
-                label: 'Search',
+                label: 'Explore',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.notifications_outlined),
@@ -101,7 +126,7 @@ class MobileHomeLayout extends StatelessWidget {
                 label: 'Notifications',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.mail_outline),
+                icon: Icon(Icons.mail_outlined),
                 activeIcon: Icon(Icons.mail),
                 label: 'Messages',
               ),
@@ -117,7 +142,7 @@ class MobileHomeLayout extends StatelessWidget {
       case 0:
         return 'Home';
       case 1:
-        return 'Search';
+        return 'Explore';
       case 2:
         return 'Notifications';
       case 3:
@@ -127,110 +152,195 @@ class MobileHomeLayout extends StatelessWidget {
     }
   }
 
-  Widget _buildCurrentScreen(bool isDark) {
-    switch (currentIndex) {
-      case 0:
-        return _buildHomeFeed(isDark);
-      case 1:
-        return _buildSearchScreen(isDark);
-      case 2:
-        return _buildNotificationsScreen(isDark);
-      case 3:
-        return _buildMessagesScreen(isDark);
-      default:
-        return _buildHomeFeed(isDark);
-    }
-  }
-
   Widget _buildHomeFeed(bool isDark) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        // Simulate refresh
-        await Future.delayed(const Duration(seconds: 1));
+    return Consumer<TweetViewModel>(
+      builder: (context, tweetViewModel, child) {
+        if (tweetViewModel.isLoading) {
+          return Center(
+            child: CircularProgressIndicator(color: AppColors.blue),
+          );
+        }
+
+        if (tweetViewModel.error != null) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(
+                    tweetViewModel.error!,
+                    style: TextStyle(color: AppColors.error),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: tweetViewModel.refreshTweets,
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: tweetViewModel.refreshTweets,
+          color: AppColors.blue,
+          backgroundColor: AppColors.surfaceColor(isDark),
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: tweetViewModel.tweets.length,
+            separatorBuilder: (context, index) =>
+                Container(height: 0.5, color: AppColors.borderColor(isDark)),
+            itemBuilder: (context, index) {
+              final tweet = tweetViewModel.tweets[index];
+              return EnhancedTweetCard(
+                tweet: tweet,
+                onLike: () => tweetViewModel.likeTweet(tweet.id),
+                onRetweet: () => tweetViewModel.retweetTweet(tweet.id),
+                onReply: () =>
+                    tweetViewModel.addReply(tweet.id, "Sample reply"),
+                onShare: () {
+                  _showShareBottomSheet(context, tweet, isDark);
+                },
+                onQuoteTweet: (content, {List<String>? mediaUrls, quoteTweet}) {
+                  if (quoteTweet != null) {
+                    tweetViewModel.addQuoteTweet(
+                      content,
+                      quoteTweet,
+                      mediaUrls: mediaUrls ?? [],
+                    );
+                  }
+                },
+              );
+            },
+          ),
+        );
       },
-      color: AppColors.blue,
-      backgroundColor: AppColors.cardColor(isDark),
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
-          TweetCard(
-            username: "John Doe",
-            handle: "johndoe",
-            content:
-                "Just built a Flutter app with a responsive layout! #FlutterDev",
-            time: "2h",
-            likes: 24,
-            retweets: 5,
-            replies: 3,
-            imageUrl:
-                'https://media.istockphoto.com/id/1280385511/photo/colorful-background.jpg?s=612x612&w=0&k=20&c=kj0PRQlgvWLzA1-1me6iZp5mlwsZhC4QlcvIEb1J1bs=',
-          ),
-          TweetCard(
-            username: "Jane Smith",
-            handle: "janesmith",
-            content: "Beautiful day for coding outside! ☀️",
-            time: "4h",
-            likes: 42,
-            retweets: 12,
-            replies: 7,
-          ),
-          TweetCard(
-            username: "Tech News",
-            handle: "technews",
-            content:
-                "New Flutter update brings exciting features for developers",
-            time: "6h",
-            likes: 128,
-            retweets: 45,
-            replies: 23,
-          ),
-          TweetCard(
-            username: "Tech Jobs",
-            handle: "technews",
-            content:
-                "New Flutter update brings exciting features for developers",
-            time: "6h",
-            likes: 128,
-            retweets: 45,
-            replies: 23,
-            imageUrl:
-                'https://images.pexels.com/photos/214574/pexels-photo-214574.jpeg?cs=srgb&dl=pexels-sebastian-214574.jpg&fm=jpg',
-          ),
-        ],
+    );
+  }
+
+  Widget _buildExploreScreen() {
+    return const SearchScreen();
+  }
+
+  Widget _buildNotificationsScreen() {
+    return const NotificationsScreen();
+  }
+
+  Widget _buildMessagesScreen() {
+    return const MessagesScreen();
+  }
+
+  void _showShareBottomSheet(BuildContext context, tweet, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.backgroundColor(isDark),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
       ),
-    );
-  }
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.borderColor(isDark),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
 
-  Widget _buildSearchScreen(bool isDark) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        await Future.delayed(const Duration(seconds: 1));
-      },
-      color: AppColors.blue,
-      backgroundColor: AppColors.cardColor(isDark),
-      child: const SearchScreen(),
-    );
-  }
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.blue.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.link, color: AppColors.blue, size: 20),
+              ),
+              title: Text(
+                'Copy link to Tweet',
+                style: TextStyle(color: AppColors.textPrimary(isDark)),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Link copied to clipboard'),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
+              },
+            ),
 
-  Widget _buildNotificationsScreen(bool isDark) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        await Future.delayed(const Duration(seconds: 1));
-      },
-      color: AppColors.blue,
-      backgroundColor: AppColors.cardColor(isDark),
-      child: const NotificationsScreen(),
-    );
-  }
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.share, color: AppColors.info, size: 20),
+              ),
+              title: Text(
+                'Share Tweet via...',
+                style: TextStyle(color: AppColors.textPrimary(isDark)),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Share functionality coming soon!'),
+                    backgroundColor: AppColors.info,
+                  ),
+                );
+              },
+            ),
 
-  Widget _buildMessagesScreen(bool isDark) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        await Future.delayed(const Duration(seconds: 1));
-      },
-      color: AppColors.blue,
-      backgroundColor: AppColors.cardColor(isDark),
-      child: const MessagesScreen(),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.bookmark_add,
+                  color: AppColors.warning,
+                  size: 20,
+                ),
+              ),
+              title: Text(
+                'Bookmark Tweet',
+                style: TextStyle(color: AppColors.textPrimary(isDark)),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                context.read<TweetViewModel>().bookmarkTweet(tweet.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Tweet bookmarked'),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -3,12 +3,12 @@ import 'package:project_x/core/constants/app_constants.dart';
 
 class ResponsiveUtils {
   static bool isMobile(BuildContext context) {
-    return MediaQuery.of(context).size.width < AppConstants.tabletBreakpoint;
+    return MediaQuery.of(context).size.width < AppConstants.mobileBreakpoint;
   }
 
   static bool isTablet(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return width >= AppConstants.tabletBreakpoint && 
+    return width >= AppConstants.mobileBreakpoint && 
            width < AppConstants.desktopBreakpoint;
   }
 
@@ -34,67 +34,22 @@ class ResponsiveUtils {
 
   static EdgeInsets getScreenPadding(BuildContext context) {
     if (isDesktop(context)) {
-      return const EdgeInsets.symmetric(horizontal: AppConstants.paddingXL);
+      return const EdgeInsets.all(24);
     } else if (isTablet(context)) {
-      return const EdgeInsets.symmetric(horizontal: AppConstants.paddingL);
+      return const EdgeInsets.all(16);
     } else {
-      return const EdgeInsets.symmetric(horizontal: AppConstants.paddingM);
+      return const EdgeInsets.all(12);
     }
   }
 
-  static double getMaxContentWidth(BuildContext context) {
+  static double getCardMaxWidth(BuildContext context) {
+    final screenWidth = getScreenWidth(context);
     if (isDesktop(context)) {
-      return 1200;
+      return screenWidth * 0.6; // 60% of screen width
     } else if (isTablet(context)) {
-      return 800;
+      return screenWidth * 0.8; // 80% of screen width
     } else {
-      return double.infinity;
+      return screenWidth; // Full width on mobile
     }
-  }
-
-  static int getCrossAxisCount(BuildContext context) {
-    if (isDesktop(context)) {
-      return 4;
-    } else if (isTablet(context)) {
-      return 3;
-    } else {
-      return 2;
-    }
-  }
-
-  static double getFontSize(BuildContext context, {
-    double mobile = 14,
-    double tablet = 16,
-    double desktop = 18,
-  }) {
-    if (isDesktop(context)) {
-      return desktop;
-    } else if (isTablet(context)) {
-      return tablet;
-    } else {
-      return mobile;
-    }
-  }
-
-  static double getIconSize(BuildContext context, {
-    double mobile = 20,
-    double tablet = 24,
-    double desktop = 28,
-  }) {
-    if (isDesktop(context)) {
-      return desktop;
-    } else if (isTablet(context)) {
-      return tablet;
-    } else {
-      return mobile;
-    }
-  }
-
-  static bool isPortrait(BuildContext context) {
-    return MediaQuery.of(context).orientation == Orientation.portrait;
-  }
-
-  static bool isLandscape(BuildContext context) {
-    return MediaQuery.of(context).orientation == Orientation.landscape;
   }
 }

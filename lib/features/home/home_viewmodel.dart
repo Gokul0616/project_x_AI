@@ -11,7 +11,9 @@ class HomeViewModel with ChangeNotifier {
   }
 
   void navigateTo(int index) {
+    // Just update the current index without any routing
+    // The bottom navigation will handle the view switching
     _currentIndex = index;
-    notifyListeners();
+    notifyListeners();  
   }
 }

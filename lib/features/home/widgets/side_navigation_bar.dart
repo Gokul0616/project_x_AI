@@ -1,9 +1,6 @@
-// lib/features/home/widgets/side_navigation_bar.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:project_x/core/theme/color_palette.dart';
-import 'package:project_x/core/providers/theme_provider.dart';
-import 'package:project_x/core/services/app_navigation_service.dart';
+import 'package:project_x/core/theme/text_styles.dart';
 
 class SideNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -17,191 +14,166 @@ class SideNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        final isDark = themeProvider.isDarkMode;
-        
-        return Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildNavItem(Icons.home, "Home", 0, isDark),
-              _buildNavItem(Icons.search, "Explore", 1, isDark),
-              _buildNavItem(Icons.notifications, "Notifications", 2, isDark),
-              _buildNavItem(Icons.mail, "Messages", 3, isDark),
-              _buildNavItem(Icons.person, "Profile", 4, isDark),
-              const SizedBox(height: 20),
-              // Theme toggle
-              _buildThemeToggle(context, themeProvider, isDark),
-              const Spacer(),
-              ElevatedButton(
-                onPressed: () {
-                  AppNavigationService.showTweetComposer(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  minimumSize: const Size(double.infinity, 48),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: const BoxDecoration(
+        color: AppColors.backgroundColor1,
+        border: Border(
+          right: BorderSide(color: AppColors.borderColor1, width: 0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          // Logo/Brand
+          Icon(
+            Icons.close, // Using X icon for Twitter/X
+            size: 32,
+            color: AppColors.white,
+          ),
+          const SizedBox(height: 40),
+
+          // Navigation Items
+          _buildNavItem(
+            icon: Icons.home_outlined,
+            selectedIcon: Icons.home,
+            label: 'Home',
+            index: 0,
+          ),
+          _buildNavItem(
+            icon: Icons.search_outlined,
+            selectedIcon: Icons.search,
+            label: 'Explore',
+            index: 1,
+          ),
+          _buildNavItem(
+            icon: Icons.notifications_outlined,
+            selectedIcon: Icons.notifications,
+            label: 'Notifications',
+            index: 2,
+          ),
+          _buildNavItem(
+            icon: Icons.mail_outline,
+            selectedIcon: Icons.mail,
+            label: 'Messages',
+            index: 3,
+          ),
+          _buildNavItem(
+            icon: Icons.person_outline,
+            selectedIcon: Icons.person,
+            label: 'Profile',
+            index: 4,
+          ),
+
+          const SizedBox(height: 40),
+
+          // Tweet Button (for larger screens)
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                // Handle tweet compose
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.blue,
+                foregroundColor: AppColors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
                 ),
-                child: const Text(
-                  "Post",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: Text('Tweet', style: TextStyles.buttonLarge),
+            ),
+          ),
+
+          const Spacer(),
+
+          // User Profile Section
+          _buildUserProfile(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required IconData selectedIcon,
+    required String label,
+    required int index,
+  }) {
+    final isSelected = currentIndex == index;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: InkWell(
+        onTap: () => onItemSelected(index),
+        borderRadius: BorderRadius.circular(25),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(25),
+            color: isSelected
+                ? AppColors.blue.withOpacity(0.2)
+                : Colors.transparent,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isSelected ? selectedIcon : icon,
+                size: 26,
+                color: isSelected ? AppColors.blue : AppColors.white,
+              ),
+              const SizedBox(width: 20),
+              Text(
+                label,
+                style: TextStyles.titleMedium.copyWith(
+                  color: isSelected ? AppColors.blue : AppColors.white,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
-              const SizedBox(height: 16),
-              _buildProfileTile(isDark),
             ],
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, int index, bool isDark) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: currentIndex == index ? AppColors.blue : AppColors.textPrimary(isDark),
-      ),
-      title: Text(
-        label,
-        style: TextStyle(
-          color: currentIndex == index ? AppColors.blue : AppColors.textPrimary(isDark),
-          fontSize: 16,
-          fontWeight: currentIndex == index
-              ? FontWeight.w600
-              : FontWeight.w400,
-        ),
-      ),
-      onTap: () {
-        // Navigate to separate routes for desktop/tablet
-        switch (index) {
-          case 0: // Home
-            AppNavigationService.navigateToHome();
-            break;
-          case 1: // Search
-            AppNavigationService.navigateToSearch();
-            break;
-          case 2: // Notifications
-            AppNavigationService.navigateToNotifications();
-            break;
-          case 3: // Messages
-            AppNavigationService.navigateToMessages();
-            break;
-          case 4: // Profile
-            AppNavigationService.navigateToProfile();  
-            break;
-          default:
-            AppNavigationService.navigateToHome();
-        }
-      },
-    );
-  }
-
-  Widget _buildThemeToggle(BuildContext context, ThemeProvider themeProvider, bool isDark) {
-    return ListTile(
-      leading: Icon(
-        _getThemeIcon(themeProvider.themeMode),
-        color: AppColors.textPrimary(isDark),
-      ),
-      title: Text(
-        themeProvider.themeName,
-        style: TextStyle(
-          color: AppColors.textPrimary(isDark),
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-      onTap: () {
-        _showThemeDialog(context, themeProvider);
-      },
-    );
-  }
-
-  Widget _buildProfileTile(bool isDark) {
-    return ListTile(
-      leading: const CircleAvatar(
-        radius: 16,
-        backgroundImage: NetworkImage('https://via.placeholder.com/32'),
-      ),
-      title: Text(
-        "User Name",
-        style: TextStyle(
-          color: AppColors.textPrimary(isDark),
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      subtitle: Text(
-        "@username",
-        style: TextStyle(
-          color: AppColors.textSecondary(isDark),
-          fontSize: 13,
         ),
       ),
     );
   }
 
-  IconData _getThemeIcon(ThemeMode themeMode) {
-    switch (themeMode) {
-      case ThemeMode.light:
-        return Icons.light_mode;
-      case ThemeMode.dark:
-        return Icons.dark_mode;
-      case ThemeMode.system:
-        return Icons.brightness_auto;
-    }
-  }
-
-  void _showThemeDialog(BuildContext context, ThemeProvider themeProvider) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Choose Theme'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<ThemeMode>(
-              title: const Text('Light'),
-              value: ThemeMode.light,
-              groupValue: themeProvider.themeMode,
-              onChanged: (value) {
-                if (value != null) {
-                  themeProvider.setThemeMode(value);
-                  Navigator.pop(context);
-                }
-              },
+  Widget _buildUserProfile() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25),
+        color: Colors.transparent,
+      ),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 20,
+            backgroundImage: NetworkImage(
+              'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
             ),
-            RadioListTile<ThemeMode>(
-              title: const Text('Dark'),
-              value: ThemeMode.dark,
-              groupValue: themeProvider.themeMode,
-              onChanged: (value) {
-                if (value != null) {
-                  themeProvider.setThemeMode(value);
-                  Navigator.pop(context);
-                }
-              },
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'You',
+                  style: TextStyles.titleSmall.copyWith(color: AppColors.white),
+                ),
+                Text(
+                  '@you',
+                  style: TextStyles.bodySmall.copyWith(
+                    color: AppColors.midGray,
+                  ),
+                ),
+              ],
             ),
-            RadioListTile<ThemeMode>(
-              title: const Text('System'),
-              value: ThemeMode.system,
-              groupValue: themeProvider.themeMode,
-              onChanged: (value) {
-                if (value != null) {
-                  themeProvider.setThemeMode(value);
-                  Navigator.pop(context);
-                }
-              },
-            ),
-          ],
-        ),
+          ),
+          Icon(Icons.more_horiz, color: AppColors.midGray),
+        ],
       ),
     );
   }

@@ -1,56 +1,51 @@
-class UserModel {
+class User {
   final String id;
   final String username;
-  final String displayName;
+  final String handle;
   final String email;
-  final String? bio;
-  final String? profileImageUrl;
-  final String? bannerImageUrl;
-  final int followers;
-  final int following;
-  final int followerCount;
-  final int followingCount;
-  final bool isVerified;
+  final String avatarUrl;
+  final String bio;
+  final String location;
+  final String website;
   final DateTime joinedDate;
-  final String? location;
-  final String? website;
+  final int followersCount;
+  final int followingCount;
+  final int tweetsCount;
+  final bool isFollowing;
+  final bool isVerified;
 
-  const UserModel({
+  const User({
     required this.id,
     required this.username,
-    required this.displayName,
+    required this.handle,
     required this.email,
-    this.bio,
-    this.profileImageUrl,
-    this.bannerImageUrl,
-    this.followers = 0,
-    this.following = 0,
-    int? followerCount,
-    int? followingCount,
-    this.isVerified = false,
+    required this.avatarUrl,
+    this.bio = '',
+    this.location = '',
+    this.website = '',
     required this.joinedDate,
-    this.location,
-    this.website,
-  }) : followerCount = followerCount ?? followers,
-       followingCount = followingCount ?? following;
-
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
-      id: json['id'],
-      username: json['username'],
-      displayName: json['displayName'],
-      email: json['email'],
-      bio: json['bio'],
-      profileImageUrl: json['profileImageUrl'],
-      bannerImageUrl: json['bannerImageUrl'],
-      followers: json['followers'] ?? 0,
-      following: json['following'] ?? 0,
-      followerCount: json['followerCount'] ?? json['followers'] ?? 0,
-      followingCount: json['followingCount'] ?? json['following'] ?? 0,
-      isVerified: json['isVerified'] ?? false,
+    this.followersCount = 0,
+    this.followingCount = 0,
+    this.tweetsCount = 0,
+    this.isFollowing = false,
+    this.isVerified = false,
+  });
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'] as String,
+      username: json['username'] as String,
+      handle: json['handle'] as String,
+      email: json['email'] as String,
+      avatarUrl: json['avatarUrl'] as String,
+      bio: json['bio'] ?? '',
+      location: json['location'] ?? '',
+      website: json['website'] ?? '',
       joinedDate: DateTime.parse(json['joinedDate']),
-      location: json['location'],
-      website: json['website'],
+      followersCount: json['followersCount'] ?? 0,
+      followingCount: json['followingCount'] ?? 0,
+      tweetsCount: json['tweetsCount'] ?? 0,
+      isFollowing: json['isFollowing'] ?? false,
+      isVerified: json['isVerified'] ?? false,
     );
   }
 
@@ -58,55 +53,52 @@ class UserModel {
     return {
       'id': id,
       'username': username,
-      'displayName': displayName,
+      'handle': handle,
       'email': email,
+      'avatarUrl': avatarUrl,
       'bio': bio,
-      'profileImageUrl': profileImageUrl,
-      'bannerImageUrl': bannerImageUrl,
-      'followers': followers,
-      'following': following,
-      'followerCount': followerCount,
-      'followingCount': followingCount,
-      'isVerified': isVerified,
-      'joinedDate': joinedDate.toIso8601String(),
       'location': location,
       'website': website,
+      'joinedDate': joinedDate.toIso8601String(),
+      'followersCount': followersCount,
+      'followingCount': followingCount,
+      'tweetsCount': tweetsCount,
+      'isFollowing': isFollowing,
+      'isVerified': isVerified,
     };
   }
 
-  UserModel copyWith({
+  User copyWith({
     String? id,
     String? username,
-    String? displayName,
+    String? handle,
     String? email,
+    String? avatarUrl,
     String? bio,
-    String? profileImageUrl,
-    String? bannerImageUrl,
-    int? followers,
-    int? following,
-    int? followerCount,
-    int? followingCount,
-    bool? isVerified,
-    DateTime? joinedDate,
     String? location,
     String? website,
+    DateTime? joinedDate,
+    int? followersCount,
+    int? followingCount,
+    int? tweetsCount,
+    bool? isFollowing,
+    bool? isVerified,
   }) {
-    return UserModel(
+    return User(
       id: id ?? this.id,
       username: username ?? this.username,
-      displayName: displayName ?? this.displayName,
+      handle: handle ?? this.handle,
       email: email ?? this.email,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
       bio: bio ?? this.bio,
-      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
-      bannerImageUrl: bannerImageUrl ?? this.bannerImageUrl,
-      followers: followers ?? this.followers,
-      following: following ?? this.following,
-      followerCount: followerCount ?? this.followerCount,
-      followingCount: followingCount ?? this.followingCount,
-      isVerified: isVerified ?? this.isVerified,
-      joinedDate: joinedDate ?? this.joinedDate,
       location: location ?? this.location,
       website: website ?? this.website,
+      joinedDate: joinedDate ?? this.joinedDate,
+      followersCount: followersCount ?? this.followersCount,
+      followingCount: followingCount ?? this.followingCount,
+      tweetsCount: tweetsCount ?? this.tweetsCount,
+      isFollowing: isFollowing ?? this.isFollowing,
+      isVerified: isVerified ?? this.isVerified,
     );
   }
 }

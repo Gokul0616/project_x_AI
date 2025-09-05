@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:project_x/core/theme/color_palette.dart';
 import 'package:project_x/core/theme/text_styles.dart';
-import 'package:project_x/core/utils/responsive_utils.dart';
-import 'package:project_x/core/providers/theme_provider.dart';
-import 'package:project_x/features/search/widgets/search_bar_widget.dart';
-import 'package:project_x/features/search/widgets/trending_section.dart';
-import 'package:project_x/features/search/widgets/search_results.dart';
+import 'package:project_x/core/theme/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -17,13 +13,27 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-  int _selectedTab = 0; // 0: Top, 1: Latest, 2: People, 3: Media
+  final FocusNode _focusNode = FocusNode();
+  bool _isSearching = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+  }
 
   @override
   void dispose() {
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    _focusNode.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      _isSearching = _searchController.text.isNotEmpty;
+    });
   }
 
   @override
@@ -34,249 +44,279 @@ class _SearchScreenState extends State<SearchScreen> {
         
         return Scaffold(
           backgroundColor: AppColors.backgroundColor(isDark),
-          body: ResponsiveUtils.isLargeScreen(context)
-              ? _buildLargeScreenLayout(isDark)
-              : _buildMobileLayout(isDark),
+          body: Column(
+            children: [
+              _buildSearchHeader(isDark),
+              Expanded(
+                child: _isSearching ? _buildSearchResults(isDark) : _buildTrending(isDark),
+              ),
+            ],
+          ),
         );
       },
     );
   }
 
-  Widget _buildLargeScreenLayout(bool isDark) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 2,
-          child: _buildMainContent(isDark),
-        ),
-        if (ResponsiveUtils.isDesktop(context))
-          Expanded(
-            flex: 1,
-            child: _buildRightSidebar(isDark),
+  Widget _buildSearchHeader(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundColor(isDark),
+        border: Border(
+          bottom: BorderSide(
+            color: AppColors.borderColor(isDark),
+            width: 0.5,
           ),
-      ],
-    );
-  }
-
-  Widget _buildMobileLayout(bool isDark) {
-    return Column(
-      children: [
-        // Search bar at top
-        Container(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: SearchBarWidget(
+        ),
+      ),
+      child: SafeArea(
+        child: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceColor(isDark),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: AppColors.borderColor(isDark), 
+              width: 0.5,
+            ),
+          ),
+          child: TextField(
             controller: _searchController,
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-            },
-            onSubmitted: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-            },
+            focusNode: _focusNode,
+            decoration: InputDecoration(
+              hintText: 'Search X',
+              hintStyle: TextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary(isDark),
+              ),
+              prefixIcon: Icon(
+                Icons.search, 
+                color: AppColors.textSecondary(isDark),
+              ),
+              suffixIcon: _isSearching
+                  ? IconButton(
+                      icon: Icon(
+                        Icons.clear, 
+                        color: AppColors.textSecondary(isDark),
+                      ),
+                      onPressed: () {
+                        _searchController.clear();
+                        _focusNode.unfocus();
+                      },
+                    )
+                  : null,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 10),
+            ),
+            style: TextStyles.bodyMedium.copyWith(
+              color: AppColors.textPrimary(isDark),
+            ),
           ),
         ),
-        Expanded(child: _buildMainContent(isDark)),
-      ],
+      ),
     );
   }
 
-  Widget _buildMainContent(bool isDark) {
+  Widget _buildTrending(bool isDark) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Trending for you',
+            style: TextStyles.titleLarge.copyWith(
+              color: AppColors.textPrimary(isDark),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildTrendingSection(isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrendingSection(bool isDark) {
+    final trends = [
+      {'category': 'Trending in Technology', 'title': 'Flutter 3.19', 'tweets': '25.3K'},
+      {'category': 'Technology', 'title': 'OpenAI ChatGPT', 'tweets': '45.2K'},
+      {'category': 'Trending', 'title': 'Space X Launch', 'tweets': '12.8K'},
+      {'category': 'Programming', 'title': 'Dart Language', 'tweets': '8.1K'},
+      {'category': 'Mobile Development', 'title': 'React Native', 'tweets': '15.7K'},
+      {'category': 'Trending in Tech', 'title': 'AI Revolution', 'tweets': '67.9K'},
+      {'category': 'Development', 'title': 'Web3', 'tweets': '23.4K'},
+    ];
+
     return Column(
-      children: [
-        if (_searchQuery.isNotEmpty) _buildSearchTabs(isDark),
-        Expanded(
-          child: _searchQuery.isEmpty
-              ? RefreshIndicator(
-                  onRefresh: () async {
-                    await Future.delayed(const Duration(seconds: 1));
-                  },
-                  color: AppColors.blue,
-                  backgroundColor: AppColors.cardColor(isDark),
-                  child: _buildExploreContent(isDark),
-                )
-              : SearchResults(
-                  query: _searchQuery,
-                  selectedTab: _selectedTab,
-                ),
+      children: trends.map((trend) => _buildTrendItem(
+        trend['category']!,
+        trend['title']!,
+        '${trend['tweets']} Tweets',
+        isDark,
+      )).toList(),
+    );
+  }
+
+  Widget _buildTrendItem(String category, String title, String tweetCount, bool isDark) {
+    return InkWell(
+      onTap: () {
+        _searchController.text = title;
+        _focusNode.requestFocus();
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    category,
+                    style: TextStyles.bodySmall.copyWith(
+                      color: AppColors.textSecondary(isDark),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    title,
+                    style: TextStyles.titleSmall.copyWith(
+                      color: AppColors.textPrimary(isDark),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    tweetCount,
+                    style: TextStyles.bodySmall.copyWith(
+                      color: AppColors.textSecondary(isDark),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.more_horiz,
+              color: AppColors.textSecondary(isDark),
+              size: 20,
+            ),
+          ],
         ),
-      ],
+      ),
+    );
+  }
+
+  Widget _buildSearchResults(bool isDark) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Search results for "${_searchController.text}"',
+            style: TextStyles.titleMedium.copyWith(
+              color: AppColors.textPrimary(isDark),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildSearchTabs(isDark),
+          const SizedBox(height: 16),
+          _buildSearchResultsList(isDark),
+        ],
+      ),
     );
   }
 
   Widget _buildSearchTabs(bool isDark) {
-    final tabs = ['Top', 'Latest', 'People', 'Media'];
-    
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _buildTabItem('All', true, isDark),
+          _buildTabItem('People', false, isDark),
+          _buildTabItem('Photos', false, isDark),
+          _buildTabItem('Videos', false, isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabItem(String title, bool isSelected, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 20), 
+      child: Column(
+        children: [
+          Text(
+            title,
+            style: TextStyles.titleSmall.copyWith(
+              color: isSelected 
+                  ? AppColors.textPrimary(isDark) 
+                  : AppColors.textSecondary(isDark),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            height: 2,
+            width: title.length * 8.0,
+            color: isSelected ? AppColors.blue : Colors.transparent,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchResultsList(bool isDark) {
+    // Mock search results
+    return Column(
+      children: [
+        _buildSearchResultItem(
+          'Flutter Development',
+          '@flutterdev',
+          'Official Flutter Twitter account. Learn Dart & Flutter development.',
+          true,
+          isDark,
+        ),
+        _buildSearchResultItem(
+          'Jane Smith',
+          '@janesmith',
+          'Flutter Developer 💙 | Coffee enthusiast ☕',
+          false,
+          isDark,
+        ),
+        _buildSearchResultItem(
+          'Tech News',
+          '@technews',
+          'Latest tech news and updates 📱💻',
+          true,
+          isDark,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchResultItem(
+    String name,
+    String handle,
+    String bio,
+    bool isVerified,
+    bool isDark,
+  ) {
     return Container(
-      height: 50,
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.borderColor(isDark), width: 0.5),
+        color: AppColors.surfaceColor(isDark),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.borderColor(isDark), 
+          width: 0.5,
         ),
       ),
       child: Row(
-        children: tabs.asMap().entries.map((entry) {
-          final index = entry.key;
-          final tab = entry.value;
-          final isSelected = index == _selectedTab;
-          
-          return Expanded(
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  _selectedTab = index;
-                });
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: isSelected ? AppColors.blue : Colors.transparent,
-                      width: 2,
-                    ),
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    tab,
-                    style: TextStyles.bodyMedium.copyWith(
-                      color: isSelected ? AppColors.blue : AppColors.textSecondary(isDark),
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildExploreContent(bool isDark) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const TrendingSection(),
-          _buildTopicsSection(isDark),
-          _buildSuggestedUsers(isDark),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTopicsSection(bool isDark) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceColor(isDark),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderColor(isDark), width: 0.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Topics to follow',
-            style: TextStyles.titleMedium,
-          ),
-          const SizedBox(height: 16),
-          ...['Technology', 'Sports', 'Entertainment', 'Politics', 'Science']
-              .map((topic) => _buildTopicItem(topic, isDark))
-              ,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTopicItem(String topic, bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.blue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.tag,
-              color: AppColors.blue,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  topic,
-                  style: TextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Trending topic',
-                  style: TextStyles.bodySmall,
-                ),
-              ],
-            ),
-          ),
-          OutlinedButton(
-            onPressed: () {},
-            child: const Text('Follow'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSuggestedUsers(bool isDark) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceColor(isDark),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderColor(isDark), width: 0.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Who to follow',
-            style: TextStyles.titleMedium,
-          ),
-          const SizedBox(height: 16),
-          ...['John Developer', 'Tech News', 'Flutter Dev', 'Design Tips']
-              .map((user) => _buildUserSuggestion(user, isDark))
-              ,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUserSuggestion(String username, bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
         children: [
           CircleAvatar(
-            radius: 20,
-            backgroundColor: AppColors.midGray,
-            child: Text(
-              username[0].toUpperCase(),
-              style: TextStyles.bodyMedium.copyWith(
-                color: AppColors.white,
-                fontWeight: FontWeight.bold,
-              ),
+            radius: 24,
+            backgroundImage: NetworkImage(
+              'https://images.unsplash.com/photo-${isVerified ? '1507003211169-0a1dd7228f2d' : '1494790108755-2616b612b5bc'}?w=150&h=150&fit=crop&crop=face',
             ),
           ),
           const SizedBox(width: 12),
@@ -284,72 +324,61 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  username,
-                  style: TextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        name,
+                        style: TextStyles.titleSmall.copyWith(
+                          color: AppColors.textPrimary(isDark),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (isVerified) ...[
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.verified,
+                        size: 16,
+                        color: AppColors.blue,
+                      ),
+                    ],
+                  ],
                 ),
                 Text(
-                  '@${username.toLowerCase().replaceAll(' ', '')}',
-                  style: TextStyles.bodySmall,
+                  handle,
+                  style: TextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary(isDark),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  bio,
+                  style: TextStyles.bodySmall.copyWith(
+                    color: AppColors.textPrimary(isDark),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-          OutlinedButton(
-            onPressed: () {},
-            child: const Text('Follow'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRightSidebar(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Search filters',
-            style: TextStyles.titleMedium,
-          ),
-          const SizedBox(height: 16),
-          _buildFilterOption('From anyone', true, isDark),
-          _buildFilterOption('People you follow', false, isDark),
-          _buildFilterOption('Near you', false, isDark),
-          const SizedBox(height: 24),
-          Text(
-            'Date',
-            style: TextStyles.titleMedium,
-          ),
-          const SizedBox(height: 16),
-          _buildFilterOption('Anytime', true, isDark),
-          _buildFilterOption('Past hour', false, isDark),
-          _buildFilterOption('Today', false, isDark),
-          _buildFilterOption('This week', false, isDark),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterOption(String title, bool isSelected, bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Radio<bool>(
-            value: true,
-            groupValue: isSelected,
-            onChanged: (value) {},
-            activeColor: AppColors.blue,
-          ),
           const SizedBox(width: 8),
-          Text(
-            title,
-            style: TextStyles.bodyMedium,
+          OutlinedButton(
+            onPressed: () {
+              // Handle follow/unfollow
+            },
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.blue,
+              side: const BorderSide(color: AppColors.blue),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            child: Text(
+              'Follow',
+              style: TextStyles.buttonSmall,
+            ),
           ),
         ],
       ),

@@ -47,6 +47,8 @@ dependencies:
   image_picker: ^1.1.2 # For image selection
   url_launcher: ^6.3.1 # For launching URLs
   intl: ^0.19.0 # For date formatting
+  socket_io_client: ^3.1.2
+  pull_to_refresh: ^2.0.0
 
 dev_dependencies:
   flutter_test:
